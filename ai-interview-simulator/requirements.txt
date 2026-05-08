@@ -1,0 +1,16 @@
+flask==3.0.0
+flask-cors==4.0.0
+python-dotenv==1.0.0
+requests==2.31.0
+opencv-python==4.8.1.78
+numpy==1.26.2
+reportlab==4.0.8
+
+# Optional but recommended
+# deepface==0.0.90        # For advanced emotion detection
+# openai-whisper==20231117  # For speech-to-text
+# SpeechRecognition==3.10.0
+# pydub==0.25.1
+# PyPDF2==3.0.1
+# python-docx==1.1.0
+# mediapipe==0.10.9

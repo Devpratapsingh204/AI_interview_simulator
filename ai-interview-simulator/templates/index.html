@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARIA — AI Interview Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- Particle Canvas Background -->
+<canvas id="particles-canvas"></canvas>
+
+<!-- Grid Overlay -->
+<div class="grid-overlay"></div>
+
+<!-- ════════════════ SETUP SCREEN ════════════════ -->
+<div id="setup-screen" class="screen active">
+  <div class="setup-container">
+    <div class="logo-area">
+      <div class="logo-hex">
+        <svg viewBox="0 0 100 100" class="hex-svg">
+          <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" fill="none" stroke="url(#hexGrad)" stroke-width="2"/>
+          <defs>
+            <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#00f5ff"/>
+              <stop offset="100%" style="stop-color:#a855f7"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="logo-icon">◈</span>
+      </div>
+      <h1 class="logo-title">ARIA</h1>
+      <p class="logo-sub">Advanced Recruitment Intelligence Assistant</p>
+      <div class="logo-line"></div>
+    </div>
+
+    <div class="setup-card">
+      <div class="setup-card-header">
+        <span class="card-tag">// INITIALIZE SESSION</span>
+        <div class="card-dots"><span></span><span></span><span></span></div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">CANDIDATE NAME</label>
+          <div class="input-wrapper">
+            <span class="input-icon">⬡</span>
+            <input type="text" id="candidate-name" class="form-input" placeholder="Enter your full name" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">JOB ROLE</label>
+          <div class="input-wrapper">
+            <span class="input-icon">◎</span>
+            <select id="job-role" class="form-input form-select">
+              <option value="">Select target role...</option>
+              <option value="Software Engineer">Software Engineer</option>
+              <option value="Full Stack Developer">Full Stack Developer</option>
+              <option value="Frontend Developer">Frontend Developer</option>
+              <option value="Backend Developer">Backend Developer</option>
+              <option value="Data Scientist">Data Scientist</option>
+              <option value="ML Engineer">ML Engineer</option>
+              <option value="DevOps Engineer">DevOps Engineer</option>
+              <option value="Product Manager">Product Manager</option>
+              <option value="UX Designer">UX Designer</option>
+              <option value="Cybersecurity Analyst">Cybersecurity Analyst</option>
+              <option value="Cloud Architect">Cloud Architect</option>
+              <option value="Business Analyst">Business Analyst</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group full-width">
+        <label class="form-label">RESUME UPLOAD <span class="optional-tag">OPTIONAL</span></label>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="resume-file" accept=".pdf,.txt,.docx" hidden>
+          <div class="upload-icon">⬆</div>
+          <p class="upload-text">Drop your resume here or <span class="upload-link">browse</span></p>
+          <p class="upload-hint">PDF, TXT, DOCX • Max 16MB</p>
+          <div class="upload-status" id="upload-status"></div>
+        </div>
+      </div>
+
+      <div class="feature-tags">
+        <span class="ftag">🎙 Voice Input</span>
+        <span class="ftag">👁 Emotion AI</span>
+        <span class="ftag">🤖 LLaMA-3</span>
+        <span class="ftag">📊 Live Feedback</span>
+        <span class="ftag">📄 PDF Report</span>
+      </div>
+
+      <button class="launch-btn" id="launch-btn">
+        <span class="btn-text">INITIALIZE INTERVIEW</span>
+        <span class="btn-arrow">→</span>
+        <div class="btn-glow"></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ INTERVIEW SCREEN ════════════════ -->
+<div id="interview-screen" class="screen">
+
+  <!-- Top HUD Bar -->
+  <div class="hud-bar">
+    <div class="hud-left">
+      <div class="hud-logo">◈ ARIA</div>
+      <div class="hud-divider"></div>
+      <div class="hud-info">
+        <span id="hud-name">CANDIDATE</span>
+        <span class="hud-sep">|</span>
+        <span id="hud-role">ROLE</span>
+      </div>
+    </div>
+    <div class="hud-center">
+      <div class="timer-display">
+        <span class="timer-icon">◷</span>
+        <span id="timer">00:00</span>
+      </div>
+      <div class="session-indicator">
+        <div class="session-dot"></div>
+        <span>LIVE SESSION</span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <div class="q-counter">
+        <span class="q-label">Q</span>
+        <span id="q-num">0</span>
+        <span class="q-sep">/</span>
+        <span>10</span>
+      </div>
+      <button class="end-btn" id="end-interview-btn">END SESSION</button>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="interview-layout">
+
+    <!-- LEFT: Webcam Panel -->
+    <div class="webcam-panel">
+      <div class="panel-header">
+        <span class="panel-tag">// VISUAL ANALYSIS</span>
+        <div class="panel-status">
+          <div class="status-dot active"></div>
+          <span>ACTIVE</span>
+        </div>
+      </div>
+
+      <div class="webcam-container">
+        <video id="webcam-video" autoplay muted playsinline></video>
+        <canvas id="webcam-canvas"></canvas>
+
+        <!-- Scan line effect -->
+        <div class="scan-line"></div>
+
+        <!-- Emotion Overlay -->
+        <div class="emotion-overlay" id="emotion-overlay">
+          <div class="emotion-main" id="emotion-display">
+            <span class="emotion-icon" id="emotion-icon">◉</span>
+            <span class="emotion-label" id="emotion-label">ANALYZING...</span>
+          </div>
+          <div class="confidence-bar-wrap">
+            <div class="confidence-bar" id="confidence-bar"></div>
+          </div>
+          <div class="confidence-pct" id="confidence-pct">0%</div>
+        </div>
+
+        <!-- Face Status -->
+        <div class="face-status" id="face-status">
+          <span class="face-dot" id="face-dot"></span>
+          <span id="face-label">DETECTING...</span>
+        </div>
+
+        <!-- Corner brackets -->
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+      </div>
+
+      <!-- Metrics Row -->
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-label">EYE CONTACT</div>
+          <div class="metric-value" id="eye-contact-val">--</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">ATTENTION</div>
+          <div class="metric-bar-wrap">
+            <div class="metric-bar" id="attention-bar"></div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">CONFIDENCE</div>
+          <div class="metric-value accent" id="confidence-score-val">--</div>
+        </div>
+      </div>
+
+      <!-- Real-time Feedback -->
+      <div class="feedback-stream" id="feedback-stream">
+        <div class="feedback-header">// LIVE FEEDBACK</div>
+        <div class="feedback-items" id="feedback-items">
+          <div class="feedback-item info">
+            <span class="fb-icon">◈</span>
+            <span>Waiting for session to start...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Chat + Controls -->
+    <div class="chat-panel">
+      <div class="panel-header">
+        <span class="panel-tag">// ARIA INTERFACE</span>
+        <div class="aria-status">
+          <div class="aria-pulse"></div>
+          <span>ARIA ONLINE</span>
+        </div>
+      </div>
+
+      <!-- Emotion Score Bar -->
+      <div class="emotion-timeline" id="emotion-timeline">
+        <div class="timeline-label">EMOTION TIMELINE</div>
+        <div class="timeline-track" id="timeline-track"></div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div class="chat-messages" id="chat-messages">
+        <div class="welcome-placeholder">
+          <div class="welcome-hex">◈</div>
+          <p>ARIA will appear here when the interview begins</p>
+        </div>
+      </div>
+
+      <!-- Typing Indicator -->
+      <div class="typing-indicator" id="typing-indicator">
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <span class="typing-text">ARIA is thinking...</span>
+      </div>
+
+      <!-- Input Zone -->
+      <div class="input-zone">
+        <div class="transcript-display" id="transcript-display">
+          <span id="transcript-text">Your speech will appear here...</span>
+        </div>
+
+        <div class="control-row">
+          <div class="text-input-wrap">
+            <textarea id="user-input" class="user-input" placeholder="Type your answer... or use voice input ↓" rows="2"></textarea>
+          </div>
+          <div class="control-btns">
+            <button class="ctrl-btn mic-btn" id="mic-btn" title="Hold to speak">
+              <span class="mic-icon">🎙</span>
+              <div class="mic-ring"></div>
+              <div class="mic-ring-2"></div>
+            </button>
+            <button class="ctrl-btn send-btn" id="send-btn" title="Send answer">
+              <span>⬆</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Score Strip -->
+  <div class="score-strip" id="score-strip">
+    <div class="score-item">
+      <span class="score-label">OVERALL</span>
+      <span class="score-val" id="overall-score">0</span>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-item">
+      <span class="score-label">CONFIDENCE</span>
+      <span class="score-val" id="confidence-live">0</span>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-item">
+      <span class="score-label">COMMUNICATION</span>
+      <span class="score-val" id="communication-score">0</span>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-item">
+      <span class="score-label">PRESENCE</span>
+      <span class="score-val" id="presence-score">0</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ RESULTS SCREEN ════════════════ -->
+<div id="results-screen" class="screen">
+  <div class="results-container">
+    <div class="results-header">
+      <div class="results-logo">◈ ARIA</div>
+      <h2 class="results-title">INTERVIEW COMPLETE</h2>
+      <p class="results-sub">Session analysis compiled</p>
+    </div>
+
+    <div class="results-grid">
+      <!-- Score Cards -->
+      <div class="result-card score-card">
+        <div class="result-card-title">OVERALL SCORE</div>
+        <div class="score-circle">
+          <svg viewBox="0 0 120 120" class="score-ring-svg">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#1a2040" stroke-width="8"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="url(#scoreGrad)" stroke-width="8"
+                    stroke-dasharray="314" stroke-dashoffset="314" id="score-ring"
+                    stroke-linecap="round" transform="rotate(-90 60 60)"/>
+            <defs>
+              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#00f5ff"/>
+                <stop offset="100%" style="stop-color:#a855f7"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="score-inner">
+            <span class="score-number" id="final-overall">0</span>
+            <span class="score-denom">/100</span>
+          </div>
+        </div>
+        <div class="score-rating" id="score-rating">--</div>
+      </div>
+
+      <div class="result-card breakdown-card">
+        <div class="result-card-title">SCORE BREAKDOWN</div>
+        <div class="breakdown-bars">
+          <div class="bbar-item">
+            <span class="bbar-label">Confidence</span>
+            <div class="bbar-track"><div class="bbar-fill cyan" id="r-confidence"></div></div>
+            <span class="bbar-val" id="r-confidence-val">0</span>
+          </div>
+          <div class="bbar-item">
+            <span class="bbar-label">Communication</span>
+            <div class="bbar-track"><div class="bbar-fill purple" id="r-communication"></div></div>
+            <span class="bbar-val" id="r-communication-val">0</span>
+          </div>
+          <div class="bbar-item">
+            <span class="bbar-label">Presence</span>
+            <div class="bbar-track"><div class="bbar-fill green" id="r-presence"></div></div>
+            <span class="bbar-val" id="r-presence-val">0</span>
+          </div>
+          <div class="bbar-item">
+            <span class="bbar-label">Technical</span>
+            <div class="bbar-track"><div class="bbar-fill amber" id="r-technical"></div></div>
+            <span class="bbar-val" id="r-technical-val">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-card emotion-card">
+        <div class="result-card-title">EMOTION PROFILE</div>
+        <div class="emotion-chart" id="emotion-chart"></div>
+      </div>
+
+      <div class="result-card feedback-card">
+        <div class="result-card-title">AI FEEDBACK</div>
+        <div class="final-feedback-list" id="final-feedback-list"></div>
+      </div>
+    </div>
+
+    <div class="results-actions">
+      <button class="action-btn primary" id="download-report-btn">
+        <span>⬇</span> DOWNLOAD PDF REPORT
+      </button>
+      <button class="action-btn secondary" id="new-interview-btn">
+        <span>↺</span> NEW INTERVIEW
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ NOTIFICATION TOAST ════════════════ -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
